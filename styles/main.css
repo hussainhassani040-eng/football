@@ -1,0 +1,765 @@
+﻿@import "tailwindcss";
+
+@layer base {
+  :root {
+    color-scheme: light;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: #F8FAFC;
+    color: #111827;
+    text-rendering: optimizeLegibility;
+  }
+
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: #F8FAFC;
+    color: #111827;
+  }
+
+  img {
+    display: block;
+    max-width: 100%;
+  }
+
+  a {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  button,
+  input,
+  textarea {
+    font: inherit;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+}
+
+@layer components {
+  .container {
+    width: min(1200px, 100%);
+    margin: 0 auto;
+    padding: 0 1.5rem;
+  }
+
+  .layout-shell {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    background: #F8FAFC;
+  }
+
+  .page-shell {
+    flex: 1;
+  }
+
+  .header-shell {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(255, 255, 255, 0.96);
+    backdrop-filter: blur(18px);
+    border-bottom: 1px solid rgba(15, 23, 42, 0.08);
+    box-shadow: 0 12px 40px rgba(15, 23, 42, 0.06);
+  }
+
+  .header-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 0;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .brand-logo-img {
+    width: 72px;
+    min-width: 72px;
+    height: auto;
+    border-radius: 1rem;
+    background: white;
+    padding: 0.4rem;
+    display: block;
+    object-fit: contain;
+  }
+
+  .brand-title {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 800;
+    color: #111827;
+    line-height: 1;
+  }
+
+  .brand-subtitle {
+    display: block;
+    font-size: 0.83rem;
+    color: #6B7280;
+    line-height: 1.4;
+  }
+
+  .menu-toggle {
+    display: none;
+    border: none;
+    background: transparent;
+    padding: 0.65rem;
+    cursor: pointer;
+  }
+
+  .menu-toggle .bar {
+    width: 22px;
+    height: 2px;
+    background: #111827;
+    display: block;
+    margin: 4px 0;
+    border-radius: 9999px;
+    transition: transform 0.2s ease;
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 1.4rem;
+    align-items: center;
+  }
+
+  .nav-link {
+    color: #374151;
+    font-weight: 500;
+    transition: color 0.2s ease;
+  }
+
+  .nav-link:hover,
+  .nav-link-active {
+    color: #16A34A;
+  }
+
+  .hero-section {
+    position: relative;
+    min-height: 82vh;
+    display: flex;
+    align-items: center;
+    background-image:
+      linear-gradient(180deg, rgba(17, 24, 39, 0.76), rgba(17, 24, 39, 0.32)),
+      url('/Images/lionel-messi.jpg');
+    background-size: cover;
+    background-position: center;
+    padding: 5rem 0;
+  }
+
+  .hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.22);
+  }
+
+  .hero-content {
+    position: relative;
+    z-index: 1;
+    max-width: 740px;
+    color: white;
+    text-align: center;
+    padding: 0 0.75rem;
+  }
+
+  .eyebrow {
+    display: inline-flex;
+    padding: 0.6rem 1rem;
+    border-radius: 9999px;
+    background: rgba(255, 255, 255, 0.12);
+    color: #F8FAFC;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .hero-content h1 {
+    margin: 0;
+    font-size: clamp(2.8rem, 5vw, 4.5rem);
+    line-height: 1.02;
+    letter-spacing: -0.03em;
+  }
+
+  .hero-copy {
+    margin: 1.5rem auto 0;
+    max-width: 40rem;
+    color: rgba(255, 255, 255, 0.88);
+    font-size: 1.05rem;
+    line-height: 1.9;
+  }
+
+  .hero-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    margin-top: 2rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    font-weight: 700;
+    padding: 0.95rem 1.8rem;
+    transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .btn:hover {
+    transform: translateY(-1px);
+  }
+
+  .btn-primary {
+    background: #16A34A;
+    color: white;
+    box-shadow: 0 18px 45px rgba(22, 163, 74, 0.18);
+  }
+
+  .btn-secondary {
+    background: white;
+    color: #111827;
+    border: 1px solid rgba(17, 24, 39, 0.08);
+  }
+
+  .btn-tertiary {
+    background: rgba(17, 24, 39, 0.04);
+    color: #111827;
+    border: 1px solid rgba(17, 24, 39, 0.08);
+  }
+
+  .section-header {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+
+  .section-label {
+    color: #16A34A;
+    font-size: 0.78rem;
+    letter-spacing: 0.18em;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .section-header h2,
+  .section-title {
+    margin: 0;
+    font-size: clamp(2rem, 2.5vw, 2.75rem);
+    line-height: 1.05;
+    color: #111827;
+  }
+
+  .section-copy {
+    max-width: 70ch;
+    color: #475569;
+    font-size: 1rem;
+    line-height: 1.85;
+  }
+
+  .featured-section,
+  .trending-section,
+  .league-section,
+  .team-section,
+  .about-page,
+  .contact-page {
+    padding: 5rem 0;
+  }
+
+  .featured-grid,
+  .league-grid,
+  .team-grid,
+  .player-grid,
+  .trending-grid {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .trending-grid {
+    grid-template-columns: 1.75fr 1fr;
+  }
+
+  .trending-column {
+    display: grid;
+    gap: 1.5rem;
+  }
+
+  .page-hero {
+    padding: 4rem 0;
+  }
+
+  .form-grid {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .form-field {
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .form-field span {
+    color: #111827;
+    font-weight: 700;
+  }
+
+  .form-field input,
+  .form-field textarea {
+    width: 100%;
+    border-radius: 1rem;
+    border: 1px solid #CBD5E1;
+    background: #F8FAFC;
+    padding: 1rem 1.1rem;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .form-field input:focus,
+  .form-field textarea:focus {
+    outline: none;
+    border-color: #16A34A;
+    box-shadow: 0 0 0 4px rgba(22, 163, 74, 0.12);
+  }
+
+  .form-full {
+    grid-column: 1 / -1;
+  }
+
+  .field-error {
+    color: #dc2626;
+    font-size: 0.95rem;
+  }
+
+  .form-success {
+    margin-top: 1rem;
+    color: #16A34A;
+    font-weight: 600;
+  }
+
+  .player-section {
+    padding-top: 3rem;
+  }
+
+  .featured-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .news-card,
+  .transfer-card,
+  .match-card,
+  .league-card,
+  .team-card,
+  .player-card,
+  .mission-card,
+  .contact-details-card,
+  .contact-form-card {
+    background: white;
+    border-radius: 1.75rem;
+    padding: 1.75rem;
+    box-shadow: 0 26px 70px rgba(15, 23, 42, 0.08);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+  }
+
+  .news-card:hover,
+  .transfer-card:hover,
+  .match-card:hover,
+  .league-card:hover,
+  .team-card:hover,
+  .player-card:hover,
+  .mission-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 28px 90px rgba(15, 23, 42, 0.12);
+  }
+
+  .news-thumb {
+    border-radius: 1.5rem;
+    overflow: hidden;
+    height: 220px;
+    background: #e5e7eb;
+  }
+
+  .news-thumb img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .news-tag {
+    display: inline-flex;
+    padding: 0.45rem 0.85rem;
+    border-radius: 9999px;
+    background: #F59E0B;
+    color: #111827;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .news-copy h3,
+  .transfer-card h3,
+  .league-card h3,
+  .team-card h3,
+  .player-card h3,
+  .mission-card h3 {
+    margin: 0;
+    font-size: 1.25rem;
+    line-height: 1.35;
+    color: #111827;
+  }
+
+  .news-copy p,
+  .transfer-meta p,
+  .match-summary,
+  .league-card p,
+  .team-body p,
+  .player-summary,
+  .feature-list li,
+  .contact-item p,
+  .contact-item a {
+    margin: 0;
+    color: #475569;
+    line-height: 1.75;
+  }
+
+  .transfer-card .transfer-top,
+  .match-card .match-header,
+  .team-card .team-top,
+  .player-card .player-header {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    color: #6B7280;
+    font-weight: 600;
+  }
+
+  .transfer-player {
+    color: #111827;
+    font-weight: 700;
+  }
+
+  .match-teams {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: center;
+    gap: 0.75rem;
+  }
+
+  .team-block {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .team-name {
+    font-weight: 700;
+    color: #111827;
+  }
+
+  .team-score {
+    font-size: 1.75rem;
+    font-weight: 800;
+  }
+
+  .match-vs {
+    color: #6B7280;
+    font-weight: 700;
+    text-align: center;
+  }
+
+  .league-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .league-card {
+    justify-content: space-between;
+  }
+
+  .league-icon,
+  .team-logo {
+    width: 3rem;
+    height: 3rem;
+    display: grid;
+    place-items: center;
+    border-radius: 1rem;
+    background: #F8FAFC;
+    color: #16A34A;
+    font-weight: 700;
+    font-size: 1rem;
+  }
+
+  .team-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .player-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .player-card .player-rating {
+    color: #16A34A;
+    font-weight: 700;
+  }
+
+  .player-card .player-team {
+    margin: 0;
+    color: #6B7280;
+  }
+
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 2rem;
+    align-items: center;
+    margin-bottom: 4rem;
+  }
+
+  .about-image {
+    border-radius: 2rem;
+    overflow: hidden;
+    box-shadow: 0 30px 90px rgba(15, 23, 42, 0.08);
+  }
+
+  .feature-list {
+    list-style: none;
+    margin: 2rem 0 0;
+    padding: 0;
+    display: grid;
+    gap: 0.9rem;
+  }
+
+  .feature-list li {
+    position: relative;
+    padding-left: 1.5rem;
+    font-size: 1rem;
+  }
+
+  .feature-list li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    top: 0;
+    color: #16A34A;
+  }
+
+  .mission-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 1.5rem;
+  }
+
+  .mission-card {
+    border: 1px solid rgba(15, 23, 42, 0.08);
+    padding: 2rem;
+  }
+
+  .mission-card h3 {
+    margin-bottom: 0.75rem;
+    font-size: 1.2rem;
+  }
+
+  .contact-layout {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 2rem;
+    align-items: flex-start;
+  }
+
+  .contact-details-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+
+  .contact-details-block {
+    display: grid;
+    gap: 1.35rem;
+  }
+
+  .contact-item {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+
+  .contact-icon {
+    width: 3rem;
+    height: 3rem;
+    display: grid;
+    place-items: center;
+    border-radius: 1rem;
+    background: #ECFDF5;
+    color: #16A34A;
+    font-size: 1.2rem;
+  }
+
+  .contact-item h3 {
+    margin: 0;
+    font-size: 1rem;
+    color: #111827;
+  }
+
+  .contact-item p,
+  .contact-item a {
+    margin: 0.25rem 0 0;
+    color: #475569;
+    font-size: 0.95rem;
+  }
+
+  .map-frame {
+    border-radius: 1.75rem;
+    overflow: hidden;
+    min-height: 280px;
+    background: #E5E7EB;
+  }
+
+  .map-frame iframe {
+    width: 100%;
+    min-height: 280px;
+    border: 0;
+  }
+
+  .site-footer {
+    border-top: 1px solid rgba(15, 23, 42, 0.08);
+    background: white;
+  }
+
+  .footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1.25rem 0;
+  }
+
+  .footer-copy {
+    margin: 0;
+    color: #6B7280;
+    font-size: 0.95rem;
+  }
+
+  .social-links {
+    display: flex;
+    gap: 0.85rem;
+  }
+
+  .social-icon {
+    display: inline-flex;
+    width: 2.75rem;
+    height: 2.75rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1rem;
+    background: #F8FAFC;
+    color: #111827;
+    transition: transform 0.2s ease, background-color 0.2s ease;
+  }
+
+  .social-icon:hover {
+    transform: translateY(-2px);
+    background: #ECFCCB;
+  }
+
+  .page-fade-enter-active,
+  .page-fade-leave-active {
+    transition: opacity 0.35s ease;
+  }
+
+  .page-fade-enter-from,
+  .page-fade-leave-to {
+    opacity: 0;
+  }
+}
+
+@media (max-width: 1024px) {
+  .featured-grid,
+  .league-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .team-grid,
+  .player-grid,
+  .about-grid,
+  .mission-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 768px) {
+  .header-inner {
+    flex-wrap: wrap;
+  }
+
+  .menu-toggle {
+    display: inline-flex;
+  }
+
+  .nav-links {
+    width: 100%;
+    flex-direction: column;
+    align-items: stretch;
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.28s ease;
+  }
+
+  .nav-links.open {
+    max-height: 420px;
+  }
+
+  .nav-link {
+    padding: 0.85rem 0;
+    border-top: 1px solid rgba(15, 23, 42, 0.06);
+  }
+
+  .hero-section {
+    min-height: 75vh;
+    padding: 4rem 0;
+  }
+
+  .hero-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .btn {
+    width: 100%;
+  }
+}
+
+@media (max-width: 540px) {
+  .hero-content h1 {
+    font-size: 2.6rem;
+  }
+
+  .section-copy,
+  .feature-list li,
+  .contact-item p,
+  .contact-item a {
+    font-size: 0.98rem;
+  }
+}
