@@ -17,44 +17,45 @@ useHead({
     <section class="page-hero">
       <div class="container">
         <p class="section-label">About Us</p>
-        <h1>Who We Are</h1>
-        <p class="section-copy">Football Hub is a global football news platform delivering the latest headlines, transfer rumours, match previews, and in-depth analysis across the world’s top leagues.</p>
+        <h1>Trusted coverage for modern football fans</h1>
+        <p class="section-copy">Football Hub brings curated, expert-led football journalism to supporters with crisp storytelling, authentic insight, and league-wide perspective.</p>
       </div>
     </section>
 
     <section class="about-grid container">
+      <div class="about-copy">
+        <h2>What makes us different</h2>
+        <p>We combine fast news updates with deep tactical insight, transfer tracking, and club-by-club analysis so fans get the full picture before kickoff.</p>
+        <ul class="feature-list">
+          <li>Breaking headlines from global leagues</li>
+          <li>Transfer market intelligence and confirmed moves</li>
+          <li>Match previews, reactions, and tactical breakdowns</li>
+          <li>Player form reports and squad evaluations</li>
+          <li>Club-focused coverage built for season-long follow-up</li>
+        </ul>
+      </div>
       <div class="about-image">
         <img src="/Images/lionel-messi.jpg" alt="Football action" loading="lazy" decoding="async" />
-      </div>
-      <div class="about-copy">
-        <h2>Our coverage includes:</h2>
-        <ul class="feature-list">
-          <li>Football news and breaking stories</li>
-          <li>Transfer rumours and deals</li>
-          <li>Match previews and post-game analysis</li>
-          <li>League standings and player statistics</li>
-          <li>Tactical breakdowns and team performance insights</li>
-        </ul>
       </div>
     </section>
 
     <section class="mission-section container">
       <div class="section-header">
         <p class="section-label">Our mission</p>
-        <h2>Bringing football coverage to fans everywhere</h2>
+        <h2>Deliver clarity, speed and expert context</h2>
       </div>
       <div class="mission-grid">
         <article class="mission-card">
-          <h3>Accurate updates</h3>
-          <p>We publish verified news fast, with clarity and context for every football fan.</p>
+          <h3>Fast, reliable updates</h3>
+          <p>We publish the latest football stories quickly without sacrificing accuracy.</p>
         </article>
         <article class="mission-card">
-          <h3>Transfer insight</h3>
-          <p>Our transfer coverage highlights rumours, moves and market activity from Europe’s top clubs.</p>
+          <h3>Transfer certainty</h3>
+          <p>Our coverage distinguishes confirmed deals from rumours with clear sourcing and insight.</p>
         </article>
         <article class="mission-card">
-          <h3>Global coverage</h3>
-          <p>From Premier League to Champions League, we cover the biggest stories from every competition.</p>
+          <h3>Match intelligence</h3>
+          <p>From pre-game previews to tactical reaction, we explain the game beyond the scoreline.</p>
         </article>
       </div>
     </section>

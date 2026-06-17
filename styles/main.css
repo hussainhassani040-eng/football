@@ -251,6 +251,12 @@
     border: 1px solid rgba(17, 24, 39, 0.08);
   }
 
+  .home-page .team-card .btn-tertiary {
+    background: #16A34A;
+    color: white;
+    border-color: #16A34A;
+  }
+
   .section-header {
     display: flex;
     flex-direction: column;
@@ -287,7 +293,11 @@
   .league-section,
   .team-section,
   .about-page,
-  .contact-page {
+  .contact-page,
+  .news-page,
+  .transfer-page,
+  .team-page,
+  .home-page {
     padding: 5rem 0;
   }
 
@@ -295,7 +305,9 @@
   .league-grid,
   .team-grid,
   .player-grid,
-  .trending-grid {
+  .trending-grid,
+  .news-list,
+  .transfer-list {
     display: grid;
     gap: 1.5rem;
   }
@@ -307,6 +319,29 @@
   .trending-column {
     display: grid;
     gap: 1.5rem;
+  }
+
+  .page-hero {
+    padding: 4rem 0;
+  }
+
+  .news-page .featured-grid,
+  .transfer-page .featured-grid,
+  .team-page .team-grid,
+  .team-page .player-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .news-page .featured-grid,
+  .transfer-page .featured-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .news-page .hero-copy,
+  .transfer-page .hero-copy,
+  .team-page .hero-copy,
+  .home-page .hero-copy {
+    max-width: 64ch;
   }
 
   .page-hero {
@@ -630,17 +665,146 @@
     font-size: 0.95rem;
   }
 
-  .map-frame {
+  .contact-support-card {
+    background: #F8FAFC;
     border-radius: 1.75rem;
-    overflow: hidden;
-    min-height: 280px;
-    background: #E5E7EB;
+    padding: 1.75rem;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.08);
+    display: grid;
+    gap: 1rem;
   }
 
-  .map-frame iframe {
-    width: 100%;
-    min-height: 280px;
-    border: 0;
+  .contact-support-card h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #111827;
+  }
+
+  .contact-support-card p {
+    margin: 0;
+    color: #475569;
+    line-height: 1.8;
+  }
+
+  .support-list {
+    display: grid;
+    gap: 1rem;
+  }
+
+  .support-list div {
+    background: white;
+    border-radius: 1.25rem;
+    padding: 1rem;
+    border: 1px solid rgba(15, 23, 42, 0.06);
+  }
+
+  .support-list strong {
+    display: block;
+    margin-bottom: 0.45rem;
+    color: #111827;
+  }
+
+  .contact-layout {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: 2rem;
+    align-items: flex-start;
+  }
+
+  .insight-grid,
+  .highlight-grid {
+    display: grid;
+    gap: 1.5rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .news-insight-card,
+  .team-highlight-card {
+    background: white;
+    border-radius: 1.75rem;
+    padding: 1.75rem;
+    box-shadow: 0 22px 45px rgba(15, 23, 42, 0.08);
+  }
+
+  .news-insight-card h3,
+  .team-highlight-card h3 {
+    margin: 0 0 0.75rem;
+    color: #111827;
+    font-size: 1.1rem;
+  }
+
+  .news-insight-card p,
+  .team-highlight-card p {
+    margin: 0;
+    color: #475569;
+    line-height: 1.85;
+  }
+
+  .trending-summary-card {
+    background: white;
+    border-radius: 1.75rem;
+    padding: 1.75rem;
+    box-shadow: 0 22px 45px rgba(15, 23, 42, 0.08);
+    display: grid;
+    gap: 1rem;
+  }
+
+  .trending-summary-card h3,
+  .trending-summary-card p {
+    margin: 0;
+    color: #111827;
+  }
+
+  .summary-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: 0.85rem;
+  }
+
+  .summary-list li {
+    padding-left: 1rem;
+    position: relative;
+    color: #475569;
+  }
+
+  .summary-list li::before {
+    content: '•';
+    position: absolute;
+    left: 0;
+    color: #16A34A;
+  }
+
+  .market-overview {
+    padding-bottom: 3rem;
+  }
+
+  .market-banner {
+    background: #ECFDF5;
+    border-radius: 2rem;
+    padding: 2rem;
+    box-shadow: 0 22px 45px rgba(15, 23, 42, 0.08);
+    margin-bottom: 2rem;
+  }
+
+  .market-banner h2 {
+    margin-top: 0.75rem;
+  }
+
+  .market-banner p {
+    margin: 1rem 0 0;
+    color: #475569;
+  }
+
+  .contact-layout .contact-details-card {
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
+  }
+
+  .contact-support-card {
+    margin-top: 1rem;
   }
 
   .site-footer {

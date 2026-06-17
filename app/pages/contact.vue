@@ -43,21 +43,27 @@ useHead({
             </div>
           </div>
           <div class="contact-item">
-            <div class="contact-icon">📍</div>
+            <div class="contact-icon">🏟️</div>
             <div>
-              <h3>Address</h3>
+              <h3>Location</h3>
               <p>Football Hub Headquarters</p>
             </div>
           </div>
         </div>
 
-        <div class="map-frame">
-          <iframe
-            title="Football Hub headquarters"
-            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3153.3268386596757!2d-122.41941518468245!3d37.77492977975947!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x80858064dfc032a1%3A0x3568f4f7a9e66482!2sMarket%20St%2C%20San%20Francisco%2C%20CA%2094110%2C%20USA!5e0!3m2!1sen!2sus!4v1700000000000!5m2!1sen!2sus"
-            loading="lazy"
-            referrerpolicy="no-referrer-when-downgrade"
-          ></iframe>
+        <div class="contact-support-card">
+          <h3>Professional support</h3>
+          <p>For editorial inquiries, partnerships, or media requests, our team is available weekdays to support your needs promptly.</p>
+          <div class="support-list">
+            <div>
+              <strong>Response time</strong>
+              <p>Within 24 hours</p>
+            </div>
+            <div>
+              <strong>Business hours</strong>
+              <p>Mon–Fri, 9am–6pm</p>
+            </div>
+          </div>
         </div>
       </aside>
     </section>

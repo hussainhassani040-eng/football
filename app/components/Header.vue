@@ -24,9 +24,9 @@
 
       <nav :class="['nav-links', { open: menuOpen }]" id="site-navigation">
         <NuxtLink to="/" exact-active-class="nav-link-active" class="nav-link" @click="closeMenu">Home</NuxtLink>
-        <NuxtLink to="/#news" class="nav-link" @click="closeMenu">News</NuxtLink>
-        <NuxtLink to="/#transfers" class="nav-link" @click="closeMenu">Transfers</NuxtLink>
-        <NuxtLink to="/#teams" class="nav-link" @click="closeMenu">Teams</NuxtLink>
+        <NuxtLink to="/news" active-class="nav-link-active" class="nav-link" @click="closeMenu">News</NuxtLink>
+        <NuxtLink to="/transfer" active-class="nav-link-active" class="nav-link" @click="closeMenu">Transfers</NuxtLink>
+        <NuxtLink to="/team" active-class="nav-link-active" class="nav-link" @click="closeMenu">Teams</NuxtLink>
         <NuxtLink to="/about" active-class="nav-link-active" class="nav-link" @click="closeMenu">About</NuxtLink>
         <NuxtLink to="/contact" active-class="nav-link-active" class="nav-link" @click="closeMenu">Contact</NuxtLink>
       </nav>
