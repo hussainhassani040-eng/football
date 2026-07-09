@@ -1,1 +1,11 @@
 @import "tailwindcss";
+.team-page {
+  margin-top: 0;
+  padding-top: 0;
+}
+
+.page-hero,
+.team-hero {
+  margin-top: 0;
+  padding-top: 0;
+}

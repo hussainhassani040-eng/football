@@ -1,7 +1,7 @@
 <template>
   <footer class="site-footer">
     <div class="footer-inner container">
-      <p class="footer-copy">© 2026 Football Hub</p>
+      <p class="footer-copy">© 2026 Football News</p>
       <div class="social-links" aria-label="Social media links">
         <a href="#" aria-label="Facebook" class="social-icon" tabindex="0">
           <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M22 12.07C22 6.48 17.52 2 12 2S2 6.48 2 12.07c0 5.02 3.66 9.18 8.44 9.93v-7.04H7.9v-2.9h2.54v-2.2c0-2.5 1.49-3.88 3.77-3.88 1.09 0 2.23.2 2.23.2v2.45h-1.26c-1.24 0-1.63.78-1.63 1.58v1.88h2.78l-.44 2.9h-2.34v7.04C18.34 21.25 22 17.09 22 12.07z"/></svg>

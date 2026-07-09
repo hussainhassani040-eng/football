@@ -2,11 +2,11 @@
 import { useHead } from '#imports'
 
 useHead({
-  title: 'About | Football Hub',
+  title: 'About | Football News',
   meta: [
-    { name: 'description', content: 'Learn about Football Hub, our mission to deliver reliable football news, transfer updates, match previews, and tactical analysis.' },
-    { property: 'og:title', content: 'About Football Hub' },
-    { property: 'og:description', content: 'Football Hub provides global football coverage, transfer rumours, match reports and player analysis.' },
+    { name: 'description', content: 'Learn about Football News, our mission to deliver reliable football news, transfer updates, match previews, and tactical analysis.' },
+    { property: 'og:title', content: 'About Football News' },
+    { property: 'og:description', content: 'Football News provides global football coverage, transfer rumours, match reports and player analysis.' },
     { property: 'og:type', content: 'website' }
   ]
 })
@@ -14,11 +14,32 @@ useHead({
 
 <template>
   <main class="about-page">
-    <section class="page-hero">
-      <div class="container">
-        <p class="section-label">About Us</p>
-        <h1>Trusted coverage for modern football fans</h1>
-        <p class="section-copy">Football Hub brings curated, expert-led football journalism to supporters with crisp storytelling, authentic insight, and league-wide perspective.</p>
+    <section class="page-hero about-hero">
+      <div class="hero-overlay"></div>
+      <div class="container about-hero-grid">
+        <div class="hero-copy">
+          <span class="eyebrow">About Football News</span>
+          <h1>Trusted coverage built for modern football fans.</h1>
+          <p class="hero-copy-text">Expert-led football journalism with curated stories, transfer intelligence, tactical breakdowns, and league-wide perspective from the world's biggest competitions.</p>
+        </div>
+        <aside class="hero-about-card">
+          <div class="hero-card-label">Our mission</div>
+          <h3>Clarity, speed and expert insight</h3>
+          <div class="hero-stat-grid">
+            <div class="stat-block">
+              <span>100K+</span>
+              <span>Active readers</span>
+            </div>
+            <div class="stat-block">
+              <span>50+</span>
+              <span>Leagues covered</span>
+            </div>
+            <div class="stat-block">
+              <span>24/7</span>
+              <span>Live updates</span>
+            </div>
+          </div>
+        </aside>
       </div>
     </section>
 
@@ -35,7 +56,7 @@ useHead({
         </ul>
       </div>
       <div class="about-image">
-        <img src="/Images/lionel-messi.jpg" alt="Football action" loading="lazy" decoding="async" />
+        <img src="/Images/bdv.jpg" alt="Football action" loading="lazy" decoding="async" />
       </div>
     </section>
 
