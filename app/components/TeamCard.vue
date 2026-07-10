@@ -56,12 +56,12 @@ const logoImageSrc = computed(() => {
 
   if (/^https?:\/\//i.test(logo) || logo.startsWith('/')) return logo
   if (looksLikeImage(logo)) return `/Images/teams-logo/${logo}`
-  return `/Images/teams-logo/${props.team}.jpg`
+  return ''
 })
 
 const logoText = computed(() => {
   const logo = props.logo.trim()
-  return looksLikeImage(logo) ? props.team.slice(0, 2).toUpperCase() : logo
+  return looksLikeImage(logo) || !logo ? props.team.slice(0, 2).toUpperCase() : logo
 })
 
 watch(() => [props.logo, props.team], () => {

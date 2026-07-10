@@ -18,10 +18,16 @@ export function normalizeLeagueValue(value?: string | null) {
     'seriea': 'Serie A',
     'international': 'International',
     'bundesliga': 'Bundesliga',
-    'ligue 1': 'Ligue 1'
+    'ligue 1': 'Ligue 1',
+    'league 1': 'Ligue 1'
   }
 
   return leagueMap[normalized] ?? String(value).trim()
+}
+
+export function isMissingSupabaseTableError(error?: { message?: string, code?: string } | null) {
+  const message = error?.message || ''
+  return error?.code === 'PGRST205' || /Could not find the table .* in the schema cache/i.test(message)
 }
 
 export function getTeamDisplayName(team?: TeamRecord | null) {

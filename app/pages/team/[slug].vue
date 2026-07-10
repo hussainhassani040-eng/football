@@ -8,6 +8,7 @@ import {
   getTeamSecondaryColor,
   getTeamSlug,
   getTeamSummary,
+  isMissingSupabaseTableError,
   normalizeLeagueValue
 } from '~/composables/useTeamTable'
 
@@ -22,7 +23,10 @@ const leagueTables = [
   { table: 'premier league', league: 'Premier League' },
   { table: 'champions league', league: 'Champions League' },
   { table: 'international', league: 'International' },
-  { table: 'serie a', league: 'Serie A' }
+  { table: 'serie a', league: 'Serie A' },
+  { table: 'bundesliga', league: 'Bundesliga' },
+  { table: 'ligue 1', league: 'Ligue 1' },
+  { table: 'teams', league: '' }
 ]
 
 const logoLoadFailed = ref(false)
@@ -41,6 +45,22 @@ const formatValue = (value: unknown) => {
   return String(value)
 }
 
+const getTextValue = (record: Record<string, any>, keys: string[]) => {
+  for (const key of keys) {
+    const value = record?.[key]
+    if (typeof value === 'string' && value.trim()) return value.trim()
+  }
+
+  return ''
+}
+
+const createSlug = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+
 const findTeamInTable = async (table: string, fallbackLeague: string) => {
   const { supabase } = useSupabase()
   const { data, error } = await supabase
@@ -48,7 +68,9 @@ const findTeamInTable = async (table: string, fallbackLeague: string) => {
     .select('*')
 
   if (error) {
-    console.warn(`Skipping ${table} profile lookup: ${error.message}`)
+    if (!isMissingSupabaseTableError(error)) {
+      console.warn(`Skipping ${table} profile lookup: ${error.message}`)
+    }
     return null
   }
 
@@ -97,14 +119,14 @@ const profileLogoSrc = computed(() => {
   const logo = String(team.value.logo || '').trim()
   if (/^https?:\/\//i.test(logo) || logo.startsWith('/')) return logo
   if (looksLikeImage(logo)) return `/Images/teams-logo/${logo}`
-  return `/Images/teams-logo/${team.value.name}.jpg`
+  return ''
 })
 
 const profileLogoText = computed(() => {
   if (!team.value) return ''
 
   const logo = String(team.value.logo || '').trim()
-  return looksLikeImage(logo) ? team.value.name.slice(0, 2).toUpperCase() : logo
+  return looksLikeImage(logo) || !logo ? team.value.name.slice(0, 2).toUpperCase() : logo
 })
 
 watch(() => team.value?.logo, () => {
@@ -188,22 +210,78 @@ const additionalFields = computed(() => {
     .map(([key, value]) => ({ label: formatLabel(key), value: formatValue(value) }))
 })
 
+const getNewsDate = (article: Record<string, any>) => article.published_at || article.created_at || ''
+
+const getNewsSlug = (article: Record<string, any>) => {
+  const storedSlug = getTextValue(article, ['slug'])
+  if (storedSlug) return storedSlug
+
+  const headline = getTextValue(article, ['title', 'headline', 'name'])
+  if (headline) return createSlug(headline)
+
+  return article.id ? String(article.id) : ''
+}
+
+const normalizeTeamNews = (article: Record<string, any>) => {
+  const headline = getTextValue(article, ['title', 'headline', 'name']) || 'Football update'
+  const summary = getTextValue(article, ['summary', 'excerpt', 'description', 'content']) || 'Fresh update from the news table.'
+  const date = getNewsDate(article)
+  const articleSlug = getNewsSlug(article)
+
+  return {
+    id: article.id || articleSlug || headline,
+    headline,
+    summary: summary.length > 150 ? `${summary.slice(0, 147)}...` : summary,
+    date,
+    to: articleSlug ? `/news-detail/${articleSlug}` : ''
+  }
+}
+
+const isNewsForTeam = (article: Record<string, any>) => {
+  if (!team.value) return false
+
+  const teamName = team.value.name
+  const teamSlug = getTeamSlug(team.value)
+  const explicitTeamValues = [
+    getTextValue(article, ['team_slug']),
+    getTextValue(article, ['team', 'club', 'team_name', 'club_name']),
+    getTextValue(article, ['teams', 'clubs', 'related_teams'])
+  ].filter(Boolean)
+
+  if (explicitTeamValues.some((value) => createSlug(value) === teamSlug || value.toLowerCase().includes(teamName.toLowerCase()))) {
+    return true
+  }
+
+  const searchableText = [
+    getTextValue(article, ['title', 'headline', 'name']),
+    getTextValue(article, ['summary', 'excerpt', 'description']),
+    getTextValue(article, ['content', 'body', 'details'])
+  ].join(' ').toLowerCase()
+
+  return searchableText.includes(teamName.toLowerCase())
+}
+
 const { data: latestNews } = await useAsyncData(`news-${slug}`, async () => {
+  if (!team.value) return []
+
   const { supabase } = useSupabase()
 
   const { data, error } = await supabase
     .from('news')
     .select('*')
-    .eq('team_slug', slug)
-    .order('published_at', { ascending: false })
-    .limit(6)
+    .order('created_at', { ascending: false })
+    .limit(200)
 
   if (error) {
     console.warn(`Skipping team news: ${error.message}`)
     return []
   }
 
-  return data ?? []
+  return (data ?? [])
+    .filter((article: Record<string, any>) => isNewsForTeam(article))
+    .sort((a: Record<string, any>, b: Record<string, any>) => new Date(getNewsDate(b)).getTime() - new Date(getNewsDate(a)).getTime())
+    .slice(0, 6)
+    .map((article: Record<string, any>) => normalizeTeamNews(article))
 })
 </script>
 
@@ -298,21 +376,23 @@ const { data: latestNews } = await useAsyncData(`news-${slug}`, async () => {
           <h2>{{ team.name }} news</h2>
         </div>
 
-        <div v-if="latestNews && latestNews.length" class="news-grid">
+        <div v-if="latestNews && latestNews.length" class="team-news-grid">
           <article
             v-for="article in latestNews"
             :key="article.id"
-            class="news-card"
+            class="team-news-card"
           >
-            <h3>{{ article.title }}</h3>
+            <div class="team-news-card__meta">
+              <span>Club news</span>
+              <time v-if="article.date">{{ new Date(article.date).toLocaleDateString() }}</time>
+            </div>
+            <h3>{{ article.headline }}</h3>
             <p>{{ article.summary }}</p>
-            <small v-if="article.published_at">
-              {{ new Date(article.published_at).toLocaleDateString() }}
-            </small>
+            <NuxtLink v-if="article.to" :to="article.to" class="team-news-card__link">Read story</NuxtLink>
           </article>
         </div>
 
-        <p v-else>No news available for this team.</p>
+        <p v-else class="team-news-empty">No news available for this team.</p>
       </section>
     </template>
   </main>

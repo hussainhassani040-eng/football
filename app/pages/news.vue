@@ -21,6 +21,27 @@ const newsCategories = [
   'Transfers'
 ]
 
+const fallbackNews = [
+  {
+    category: 'La Liga',
+    headline: 'Barcelona continue to shape the season with fresh momentum',
+    summary: 'The latest updates from the Camp Nou and the wider La Liga landscape are now flowing into the site.',
+    image: '/barcelona.webp'
+  },
+  {
+    category: 'Transfers',
+    headline: 'Top clubs chase elite winger ahead of summer window',
+    summary: 'Reports suggest a multi-club battle for one of Europe’s most dangerous attackers.',
+    image: '/barcelona.webp'
+  },
+  {
+    category: 'Match Review',
+    headline: 'Classic derby ends with last-minute drama',
+    summary: 'A late goal and controversial call left fans debating the outcome long after full-time.',
+    image: '/barcelona.webp'
+  }
+]
+
 const getTextValue = (record: Record<string, any>, keys: string[]) => {
   for (const key of keys) {
     const value = record?.[key]
@@ -30,55 +51,62 @@ const getTextValue = (record: Record<string, any>, keys: string[]) => {
   return ''
 }
 
+const createSlug = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+
 const normalizeArticle = (record: Record<string, any>) => {
   const headline = getTextValue(record, ['title', 'headline', 'name']) || 'Football update'
   const summary = getTextValue(record, ['summary', 'excerpt', 'description', 'content']) || 'Fresh football coverage from the Supabase news table.'
   const category = getTextValue(record, ['category', 'tag', 'type']) || 'Football'
   const image = getTextValue(record, ['image', 'image_url', 'cover_image', 'thumbnail', 'photo']) || '/barcelona.webp'
+  const slug = getTextValue(record, ['slug']) || (record?.id ? String(record.id) : createSlug(headline))
 
   return {
     category,
     headline,
     summary: summary.length > 140 ? `${summary.slice(0, 137)}...` : summary,
-    image
+    image,
+    to: `/news-detail/${slug}`
   }
 }
 
 const { data: newsArticles, pending, error } = await useAsyncData('supabase-news-feed', async () => {
-  const { supabase } = useSupabase()
-  const { data, error: fetchError } = await supabase
-    .from('news')
-    .select('*')
-    .order('created_at', { ascending: false })
+  try {
+    const { supabase } = useSupabase()
+    const { data, error: fetchError } = await supabase
+      .from('news')
+      .select('*')
+      .order('created_at', { ascending: false })
 
-  if (fetchError) {
-    throw new Error(`News feed query failed: ${fetchError.message}`)
+    if (fetchError) {
+      throw fetchError
+    }
+
+    if (!data?.length) {
+      return fallbackNews
+    }
+
+    return data.map((item: Record<string, any>) => normalizeArticle(item))
+  } catch (err) {
+    console.error('Unable to load news from Supabase:', err)
+    return fallbackNews
   }
-
-  if (!data?.length) {
-    return []
-  }
-
-  return data.map((item: Record<string, any>) => normalizeArticle(item))
 })
 
 const latestArticles = computed(() => (newsArticles.value ?? []).slice(0, 4))
 
 const featuredStory = computed(() => {
-  const article = latestArticles.value[0]
-
-  if (!article) {
-    return {
-      label: 'No Stories',
-      headline: 'No news articles available',
-      summary: 'Check back later for the latest updates.'
-    }
-  }
+  const article = latestArticles.value[0] || fallbackNews[0]
 
   return {
     label: 'Featured Story',
     headline: article.headline,
-    summary: article.summary
+    summary: article.summary,
+    to: article.to
   }
 })
 
@@ -114,7 +142,8 @@ const matchInsights = [
           <span class="hero-card-label">{{ featuredStory.label }}</span>
           <h2>{{ featuredStory.headline }}</h2>
           <p>{{ featuredStory.summary }}</p>
-          <button type="button" class="btn btn-tertiary">Read Full Story</button>
+          <NuxtLink v-if="featuredStory.to" :to="featuredStory.to" class="btn btn-tertiary">Read Full Story</NuxtLink>
+          <button v-else type="button" class="btn btn-tertiary">Read Full Story</button>
         </aside>
       </div>
     </section>
@@ -128,7 +157,7 @@ const matchInsights = [
       </div>
     </section>
 
-    <section class="news-content container" id="news">
+    <section class="news-content container">
       <div class="news-main">
         <article class="breaking-strip">
           <span class="breaking-label">Breaking</span>
@@ -139,10 +168,7 @@ const matchInsights = [
           <p>Loading news from Supabase…</p>
         </div>
         <div v-else-if="error" class="error-message">
-          <p>Error loading news from Supabase: {{ error.message }}</p>
-        </div>
-        <div v-else-if="latestArticles.length === 0" class="error-message">
-          <p>No news articles available.</p>
+          <p>Unable to load news right now. Showing the latest fallback stories instead.</p>
         </div>
         <div v-else class="news-grid">
           <NewsCard
@@ -152,6 +178,7 @@ const matchInsights = [
             :headline="article.headline"
             :summary="article.summary"
             :image="article.image"
+            :to="article.to"
           />
         </div>
       </div>

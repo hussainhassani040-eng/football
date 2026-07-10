@@ -1,5 +1,5 @@
 ﻿<script setup lang="ts">
-import { computed, useAsyncData, useHead } from '#imports'
+import { useAsyncData, useHead } from '#imports'
 import NewsCard from '../components/NewsCard.vue'
 import TransferCard from '../components/TransferCard.vue'
 import MatchCard from '../components/MatchCard.vue'
@@ -7,6 +7,7 @@ import LeagueCard from '../components/LeagueCard.vue'
 import TeamCard from '../components/TeamCard.vue'
 import PlayerCard from '../components/PlayerCard.vue'
 import { useSupabase } from '../composables/useSupabase'
+import { buildTeamCardData, getTeamSlug, isMissingSupabaseTableError, normalizeLeagueValue } from '../composables/useTeamTable'
 
 useHead({
   title: 'Football Hub | Latest Football News',
@@ -18,6 +19,27 @@ useHead({
   ]
 })
 
+const fallbackFeaturedNews = [
+  {
+    category: 'Latest Football News',
+    headline: 'Manchester City edge past Liverpool in late thriller',
+    summary: 'City held on in a dramatic Anfield clash after a stoppage-time counter sealed the win.',
+    image: '/Images/lionel-messi.jpg'
+  },
+  {
+    category: 'Transfer News',
+    headline: 'Real Madrid in talks for elite midfield target',
+    summary: 'The reigning champions are closing in on a surprise move ahead of the summer window.',
+    image: '/Images/lionel-messi.jpg'
+  },
+  {
+    category: 'Match Analysis',
+    headline: 'Tactical review: How Arsenal broke down the defence',
+    summary: 'A closer look at the patterns that gave them control in the second half.',
+    image: '/Images/lionel-messi.jpg'
+  }
+]
+
 const getTextValue = (record: Record<string, any>, keys: string[]) => {
   for (const key of keys) {
     const value = record?.[key]
@@ -27,137 +49,201 @@ const getTextValue = (record: Record<string, any>, keys: string[]) => {
   return ''
 }
 
-const normalizeArticle = (record: Record<string, any>) => {
+const createSlug = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+
+const normalizeFeaturedNews = (record: Record<string, any>) => {
   const headline = getTextValue(record, ['title', 'headline', 'name']) || 'Football update'
   const summary = getTextValue(record, ['summary', 'excerpt', 'description', 'content']) || 'Fresh football coverage from the Supabase news table.'
   const category = getTextValue(record, ['category', 'tag', 'type']) || 'Football'
   const image = getTextValue(record, ['image', 'image_url', 'cover_image', 'thumbnail', 'photo']) || '/Images/lionel-messi.jpg'
+  const slug = getTextValue(record, ['slug']) || (record?.id ? String(record.id) : createSlug(headline))
 
   return {
     category,
     headline,
     summary: summary.length > 140 ? `${summary.slice(0, 137)}...` : summary,
-    image
+    image,
+    to: `/news-detail/${slug}`
   }
 }
 
-const getResultValue = (record: Record<string, any>, keys: string[]) => {
+const getScoreValue = (record: Record<string, any>, keys: string[]) => {
   for (const key of keys) {
     const value = record?.[key]
-    if (value !== null && value !== undefined && value !== '') {
-      return String(value)
-    }
+    if (value !== null && value !== undefined && value !== '') return value
   }
 
-  return ''
+  return '0'
 }
 
-const normalizeTopPerformer = (record: Record<string, any>) => ({
-  name: getTextValue(record, ['name', 'player_name', 'player', 'full_name']) || 'Player',
-  position: getTextValue(record, ['position', 'role']) || 'Player',
-  team: getTextValue(record, ['team', 'club', 'team_name']) || 'Club',
-  rating: getResultValue(record, ['rating', 'score', 'performance_rating']) || 'N/A',
-  summary: getTextValue(record, ['summary', 'description', 'bio', 'notes']) || 'A standout performer from the top_performers table.'
-})
-
-const { data: featuredNews, pending, error } = await useAsyncData('home-featured-news', async () => {
-  const { supabase } = useSupabase()
-  const { data, error: fetchError } = await supabase
-    .from('news')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(3)
-
-  if (fetchError) {
-    throw new Error(`News query failed: ${fetchError.message}`)
+const getDisplayValue = (record: Record<string, any>, keys: string[], fallback: string) => {
+  for (const key of keys) {
+    const value = record?.[key]
+    if (value !== null && value !== undefined && value !== '') return String(value)
   }
 
-  if (!data?.length) {
-    return []
-  }
+  return fallback
+}
 
-  return data.map((item: Record<string, any>) => normalizeArticle(item))
-})
+const { data: featuredNews } = await useAsyncData('home-featured-news', async () => {
+  try {
+    const { supabase } = useSupabase()
+    const { data, error } = await supabase
+      .from('news')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(3)
 
-const featuredStories = computed(() => (featuredNews.value ?? []).slice(0, 3))
-
-const { data: trendingResults } = await useAsyncData('home-trending-results', async () => {
-  const { supabase } = useSupabase()
-  const { data, error: fetchError } = await supabase
-    .from('match_results')
-    .select('*')
-    .order('match_date', { ascending: false })
-    .limit(3)
-
-  if (fetchError) {
-    throw new Error(`Match results query failed: ${fetchError.message}`)
-  }
-
-  if (!data?.length) {
-    return []
-  }
-
-  return data.map((item: Record<string, any>) => {
-    const homeTeam = getTextValue(item, ['home_team', 'homeTeam', 'team_home']) || 'Home team'
-    const awayTeam = getTextValue(item, ['away_team', 'awayTeam', 'team_away']) || 'Away team'
-    const homeScore = Number(getResultValue(item, ['home_score', 'homeScore', 'home_goals', 'homeGoals'])) || 0
-    const awayScore = Number(getResultValue(item, ['away_score', 'awayScore', 'away_goals', 'awayGoals'])) || 0
-
-    return {
-      league: getTextValue(item, ['league', 'competition', 'competition_name', 'tournament']) || 'Featured match',
-      homeTeam,
-      awayTeam,
-      homeScore,
-      awayScore,
-      status: getTextValue(item, ['status', 'result', 'match_status']) || 'FT',
-      summary: getTextValue(item, ['summary', 'description', 'report']) || `${homeTeam} and ${awayTeam} met in a recent fixture.`
+    if (error) {
+      throw error
     }
-  })
+
+    if (!data?.length) {
+      return fallbackFeaturedNews
+    }
+
+    return data.map((item: Record<string, any>) => normalizeFeaturedNews(item))
+  } catch (err) {
+    console.error('Unable to load featured news from Supabase:', err)
+    return fallbackFeaturedNews
+  }
 })
 
-const trendingMatches = computed(() => (trendingResults.value ?? []).slice(0, 3))
-
-const { data: trendingTransfers } = await useAsyncData('home-trending-transfers', async () => {
-  const { supabase } = useSupabase()
-  const { data, error: fetchError } = await supabase
-    .from('transfer_news')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(3)
-
-  if (fetchError) {
-    throw new Error(`Transfer news query failed: ${fetchError.message}`)
+const fallbackTrendingMatches = [
+  {
+    league: 'Premier League',
+    homeTeam: 'Arsenal',
+    awayTeam: 'Chelsea',
+    homeScore: 3,
+    awayScore: 2,
+    status: 'FT',
+    summary: 'Arsenal fought back with two late goals to claim a dramatic London derby victory.'
+  },
+  {
+    league: 'La Liga',
+    homeTeam: 'Barcelona',
+    awayTeam: 'Atletico Madrid',
+    homeScore: 1,
+    awayScore: 1,
+    status: 'FT',
+    summary: 'A tactical stalemate at Camp Nou leaves both sides searching for consistency.'
+  },
+  {
+    league: 'Bundesliga',
+    homeTeam: 'Bayern Munich',
+    awayTeam: 'Borussia Dortmund',
+    homeScore: 2,
+    awayScore: 1,
+    status: 'FT',
+    summary: 'Bayern edged past Dortmund in a high-intensity Klassiker showdown.'
   }
+]
 
-  if (!data?.length) {
-    return []
+const fallbackTransfers = [
+  {
+    player: 'Kylian Mbappé',
+    status: 'Rumour',
+    headline: 'PSG star linked with move to Premier League',
+    summary: 'Top clubs are reportedly preparing offers as the striker evaluates his future.'
+  },
+  {
+    player: 'Jude Bellingham',
+    status: 'Confirmed',
+    headline: 'Midfield maestro closes in on Real Madrid transfer',
+    summary: 'The English international looks set for a headline move after a stellar season.'
+  },
+  {
+    player: 'Riyad Mahrez',
+    status: 'Latest',
+    headline: 'Juventus monitor late-window winger option',
+    summary: 'The Italian giants are keeping tabs on a creative wide attacker.'
   }
+]
 
-  return data.map((item: Record<string, any>) => ({
-    player: getTextValue(item, ['player', 'player_name', 'name', 'full_name']) || 'Player update',
-    status: getTextValue(item, ['status', 'transfer_status', 'type']) || 'Latest',
-    headline: getTextValue(item, ['headline', 'title', 'summary']) || 'Transfer update',
-    summary: getTextValue(item, ['details', 'description', 'content', 'summary']) || 'Latest transfer news from the Supabase transfer_news table.'
-  }))
+const normalizeMatchResult = (record: Record<string, any>) => {
+  const homeTeam = getTextValue(record, ['home_team', 'homeTeam', 'team_home', 'home', 'home_club']) || 'Home team'
+  const awayTeam = getTextValue(record, ['away_team', 'awayTeam', 'team_away', 'away', 'away_club']) || 'Away team'
+  const league = getTextValue(record, ['league', 'competition', 'tournament']) || 'Football'
+  const status = getTextValue(record, ['status', 'match_status', 'result_status']) || 'FT'
+  const summary = getTextValue(record, ['summary', 'description', 'report', 'notes']) || `${homeTeam} vs ${awayTeam} from the latest match results.`
+
+  return {
+    league,
+    homeTeam,
+    awayTeam,
+    homeScore: getScoreValue(record, ['home_score', 'homeScore', 'home_goals', 'homeGoals']),
+    awayScore: getScoreValue(record, ['away_score', 'awayScore', 'away_goals', 'awayGoals']),
+    status,
+    summary: summary.length > 130 ? `${summary.slice(0, 127)}...` : summary
+  }
+}
+
+const normalizeTransfer = (record: Record<string, any>) => {
+  const player = getTextValue(record, ['player', 'player_name', 'name']) || 'Transfer target'
+  const status = getTextValue(record, ['status', 'transfer_status', 'type']) || 'Latest'
+  const club = getTextValue(record, ['club', 'team', 'to_club', 'destination_club'])
+  const headline = getTextValue(record, ['headline', 'title', 'name']) || (club ? `${player} linked with ${club}` : `${player} transfer update`)
+  const summary = getTextValue(record, ['summary', 'excerpt', 'description', 'content', 'details']) || 'Fresh transfer coverage from the Supabase transfer_news table.'
+
+  return {
+    player,
+    status,
+    headline,
+    summary: summary.length > 130 ? `${summary.slice(0, 127)}...` : summary
+  }
+}
+
+const { data: trendingMatches } = await useAsyncData('home-trending-match-results', async () => {
+  try {
+    const { supabase } = useSupabase()
+    const { data, error } = await supabase
+      .from('match_results')
+      .select('*')
+      .order('match_date', { ascending: false })
+      .limit(3)
+
+    if (error) {
+      throw error
+    }
+
+    if (!data?.length) {
+      return fallbackTrendingMatches
+    }
+
+    return data.map((item: Record<string, any>) => normalizeMatchResult(item))
+  } catch (err) {
+    console.error('Unable to load trending match results from Supabase:', err)
+    return fallbackTrendingMatches
+  }
 })
 
-const transfers = computed(() => (trendingTransfers.value ?? []).slice(0, 3))
+const { data: transfers } = await useAsyncData('home-trending-transfer-news', async () => {
+  try {
+    const { supabase } = useSupabase()
+    const { data, error } = await supabase
+      .from('transfer_news')
+      .select('*')
+      .limit(3)
 
-const { data: topPerformers, pending: performersPending, error: performersError } = await useAsyncData('home-top-performers', async () => {
-  const { supabase } = useSupabase()
-  const { data, error: fetchError } = await supabase
-    .from('top_performers')
-    .select('*')
-    .order('created_at', { ascending: false })
+    if (error) {
+      throw error
+    }
 
-  if (fetchError) {
-    throw new Error(`Top performers query failed: ${fetchError.message}`)
+    if (!data?.length) {
+      return fallbackTransfers
+    }
+
+    return data.map((item: Record<string, any>) => normalizeTransfer(item))
+  } catch (err) {
+    console.error('Unable to load transfer news from Supabase:', err)
+    return fallbackTransfers
   }
-
-  return (data ?? []).map((item: Record<string, any>) => normalizeTopPerformer(item))
 })
-
-const players = computed(() => topPerformers.value ?? [])
 
 const leagues = [
   { league: 'Premier League', description: 'Fast-paced English football with high drama in every match.', logo: 'PL' },
@@ -168,13 +254,170 @@ const leagues = [
   { league: 'Champions League', description: 'The biggest nights in club football, with elite European rivalries.', logo: 'UCL' }
 ]
 
-const teams = [
-  { rank: 1, team: 'Manchester City', country: 'England', summary: 'Dominant champions with elite depth and star power.', logo: 'MC' },
-  { rank: 2, team: 'Real Madrid', country: 'Spain', summary: 'Historic European giants chasing more silverware.', logo: 'RM' },
-  { rank: 3, team: 'Bayern Munich', country: 'Germany', summary: 'Consistent Bundesliga leaders with attacking firepower.', logo: 'BM' },
-  { rank: 4, team: 'Paris Saint-Germain', country: 'France', summary: 'High-profile squad built for European glory.', logo: 'PSG' }
+const homeTeamTargets = [
+  {
+    names: ['Manchester City', 'Man City'],
+    fallback: { team: 'Manchester City', country: 'England', league: 'Premier League', summary: 'Dominant champions with elite depth and star power.', logo: 'MC' }
+  },
+  {
+    names: ['Real Madrid'],
+    fallback: { team: 'Real Madrid', country: 'Spain', league: 'LaLiga', summary: 'Historic European giants chasing more silverware.', logo: 'RM' }
+  },
+  {
+    names: ['Bayern Munich', 'FC Bayern Munich'],
+    fallback: { team: 'Bayern Munich', country: 'Germany', league: 'Bundesliga', summary: 'Consistent Bundesliga leaders with attacking firepower.', logo: 'BM' }
+  },
+  {
+    names: ['Paris Saint-Germain', 'Paris Saint Germain', 'PSG'],
+    fallback: { team: 'Paris Saint-Germain', country: 'France', league: 'Ligue 1', summary: 'High-profile squad built for European glory.', logo: 'PSG' }
+  }
 ]
 
+const homeTeamSources = [
+  { table: 'Laliga', league: 'LaLiga' },
+  { table: 'premier league', league: 'Premier League' },
+  { table: 'champions league', league: 'Champions League' },
+  { table: 'international', league: 'International' },
+  { table: 'serie a', league: 'Serie A' },
+  { table: 'bundesliga', league: 'Bundesliga' },
+  { table: 'ligue 1', league: 'Ligue 1' },
+  { table: 'teams', league: '' }
+]
+
+const normalizeMatchText = (value: string) =>
+  value
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '')
+
+const normalizeHomeTeam = (record: Record<string, any>, source: { table: string, league: string }) => ({
+  ...record,
+  league: normalizeLeagueValue(record.league || source.league),
+  source_table: source.table
+})
+
+const teamMatchesTarget = (record: Record<string, any>, targetNames: string[]) => {
+  const recordNames = [
+    record.name,
+    record.team,
+    record.club,
+    record.title,
+    record.fullname,
+    record.short_name,
+    record.slug,
+    getTeamSlug(record)
+  ]
+    .filter(Boolean)
+    .map((value) => normalizeMatchText(String(value)))
+
+  return targetNames
+    .map((name) => normalizeMatchText(name))
+    .some((name) => recordNames.includes(name))
+}
+
+const fallbackHomeTeams = homeTeamTargets.map((target, index) => ({
+  ...target.fallback,
+  rank: index + 1,
+  form: 'N/A',
+  primary_color: '#16A34A',
+  secondary_color: '#FFFFFF',
+  source_table: ''
+}))
+
+const getTeamProfileRoute = (team: Record<string, any>) => {
+  if (!team.source_table) return ''
+
+  return {
+    path: `/team/${team.slug || getTeamSlug(team)}`,
+    query: { source: team.source_table }
+  }
+}
+
+const { data: teams } = await useAsyncData('home-featured-teams', async () => {
+  try {
+    const { supabase } = useSupabase()
+    const sourceResults = await Promise.all(
+      homeTeamSources.map(async (source) => {
+        const { data, error } = await supabase
+          .from(source.table)
+          .select('*')
+          .limit(100)
+
+        if (error) {
+          if (!isMissingSupabaseTableError(error)) {
+            console.warn(`Skipping ${source.table} home teams: ${error.message}`)
+          }
+          return []
+        }
+
+        return (data ?? []).map((team: Record<string, any>) => normalizeHomeTeam(team, source))
+      })
+    )
+
+    const supabaseTeams = sourceResults.flat()
+
+    return homeTeamTargets.map((target, index) => {
+      const found = supabaseTeams.find((team) => teamMatchesTarget(team, target.names))
+
+      if (!found) {
+        return fallbackHomeTeams[index]
+      }
+
+      return buildTeamCardData(found, index)
+    })
+  } catch (err) {
+    console.error('Unable to load featured teams from Supabase:', err)
+    return fallbackHomeTeams
+  }
+})
+
+const fallbackPlayers = [
+  { name: 'Erling Haaland', position: 'Striker', team: 'Manchester City', rating: '9.3', summary: 'A relentless goalscorer with incredible pace and power.' },
+  { name: 'Vinícius Jr.', position: 'Winger', team: 'Real Madrid', rating: '9.1', summary: 'Blistering dribbler who can change a game in an instant.' },
+  { name: 'Jude Bellingham', position: 'Midfielder', team: 'Real Madrid', rating: '9.0', summary: 'A complete midfielder with vision, strength, and work rate.' },
+  { name: 'Kylian Mbappe', position: 'Forward', team: 'Real Madrid', rating: '8.9', summary: 'An explosive forward who stretches defences and finishes chances at pace.' }
+]
+
+const normalizeTopPerformer = (record: Record<string, any>) => {
+  const name = getDisplayValue(record, ['name', 'player', 'player_name'], 'Top performer')
+  const position = getDisplayValue(record, ['position', 'role'], 'Player')
+  const team = getDisplayValue(record, ['team', 'club', 'team_name'], 'Football club')
+  const rating = getDisplayValue(record, ['rating', 'score', 'form_rating'], '9.0')
+  const summary = getTextValue(record, ['summary', 'description', 'bio', 'notes']) || `${name} is among the latest top performers.`
+
+  return {
+    name,
+    position,
+    team,
+    rating,
+    summary: summary.length > 130 ? `${summary.slice(0, 127)}...` : summary
+  }
+}
+
+const { data: players } = await useAsyncData('home-top-performers', async () => {
+  try {
+    const { supabase } = useSupabase()
+    const { data, error } = await supabase
+      .from('top_performers')
+      .select('*')
+      .order('rating', { ascending: false })
+
+    if (error) {
+      throw error
+    }
+
+    if (!data?.length) {
+      return fallbackPlayers
+    }
+
+    return data.map((item: Record<string, any>) => normalizeTopPerformer(item))
+  } catch (err) {
+    console.error('Unable to load top performers from Supabase:', err)
+    return fallbackPlayers
+  }
+})
 </script>
 
 <template>
@@ -186,8 +429,8 @@ const teams = [
         <h1>Latest Football News & Transfer Updates</h1>
         <p class="hero-copy">Breaking football news, transfer rumours, match reports and analysis from around the world.</p>
         <div class="hero-actions">
-          <NuxtLink to="/news#news" class="btn btn-primary">Explore News</NuxtLink>
-          <NuxtLink to="/transfer#transfers" class="btn btn-secondary">Follow Transfers</NuxtLink>
+          <NuxtLink to="/#news" class="btn btn-primary">Explore News</NuxtLink>
+          <NuxtLink to="/#transfers" class="btn btn-secondary">Follow Transfers</NuxtLink>
         </div>
       </div>
     </section>
@@ -197,17 +440,8 @@ const teams = [
         <p class="section-label">Featured stories</p>
         <h2>Top headlines from the global game</h2>
       </div>
-      <div v-if="pending" class="featured-grid">
-        <p class="loading-message">Loading featured stories from Supabase…</p>
-      </div>
-      <div v-else-if="error" class="featured-grid">
-        <p class="loading-message">Error loading featured stories: {{ error.message }}</p>
-      </div>
-      <div v-else-if="featuredStories.length === 0" class="featured-grid">
-        <p class="loading-message">No featured stories available.</p>
-      </div>
-      <div v-else class="featured-grid">
-        <NewsCard v-for="item in featuredStories" :key="item.headline" :category="item.category" :headline="item.headline" :summary="item.summary" :image="item.image" />
+      <div class="featured-grid">
+        <NewsCard v-for="item in featuredNews" :key="item.headline" :category="item.category" :headline="item.headline" :summary="item.summary" :image="item.image" :to="item.to" />
       </div>
     </section>
 
@@ -218,21 +452,11 @@ const teams = [
       </div>
       <div class="trending-grid">
         <div class="trending-column">
-          <MatchCard v-for="match in trendingMatches" :key="`${match.homeTeam}-${match.awayTeam}`" :league="match.league" :home-team="match.homeTeam" :away-team="match.awayTeam" :home-score="match.homeScore" :away-score="match.awayScore" :status="match.status" :summary="match.summary" />
+          <MatchCard v-for="match in trendingMatches" :key="match.homeTeam + match.awayTeam" :league="match.league" :home-team="match.homeTeam" :away-team="match.awayTeam" :home-score="match.homeScore" :away-score="match.awayScore" :status="match.status" :summary="match.summary" />
         </div>
         <div class="trending-column">
-          <TransferCard v-for="transfer in transfers" :key="`${transfer.player}-${transfer.headline}`" :player="transfer.player" :status="transfer.status" :headline="transfer.headline" :summary="transfer.summary" />
+          <TransferCard v-for="transfer in transfers" :key="transfer.player" :player="transfer.player" :status="transfer.status" :headline="transfer.headline" :summary="transfer.summary" />
         </div>
-      </div>
-    </section>
-
-    <section class="league-section container">
-      <div class="section-header">
-        <p class="section-label">Leagues</p>
-        <h2>Follow the biggest competitions in world football</h2>
-      </div>
-      <div class="league-grid">
-        <LeagueCard v-for="item in leagues" :key="item.league" :league="item.league" :description="item.description" :logo="item.logo" />
       </div>
     </section>
 
@@ -242,20 +466,24 @@ const teams = [
         <h2>Club form, elite squads and standout performers</h2>
       </div>
       <div class="team-grid">
-        <TeamCard v-for="team in teams" :key="team.team" :team="team.team" :rank="team.rank" :country="team.country" :summary="team.summary" :logo="team.logo" />
+        <TeamCard
+          v-for="team in teams"
+          :key="team.team"
+          :team="team.team"
+          :rank="team.rank"
+          :league="team.league"
+          :country="team.country"
+          :form="team.form || 'N/A'"
+          :summary="team.summary"
+          :logo="team.logo"
+          :primary-color="team.primary_color"
+          :secondary-color="team.secondary_color"
+          :profile-to="getTeamProfileRoute(team)"
+        />
       </div>
       <div class="player-section">
         <p class="section-label">Top performers</p>
-        <div v-if="performersPending" class="player-grid">
-          <p class="loading-message">Loading top performers from Supabase…</p>
-        </div>
-        <div v-else-if="performersError" class="player-grid">
-          <p class="loading-message">Error loading top performers: {{ performersError.message }}</p>
-        </div>
-        <div v-else-if="players.length === 0" class="player-grid">
-          <p class="loading-message">No top performers available.</p>
-        </div>
-        <div v-else class="player-grid">
+        <div class="player-grid">
           <PlayerCard v-for="player in players" :key="player.name" :name="player.name" :position="player.position" :team="player.team" :rating="player.rating" :summary="player.summary" />
         </div>
       </div>

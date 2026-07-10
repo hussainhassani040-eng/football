@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { useHead, useAsyncData, ref, computed } from '#imports'
 import { useSupabase } from '~/composables/useSupabase'
-import { buildTeamCardData, getTeamSlug, normalizeLeagueValue } from '~/composables/useTeamTable'
+import { buildTeamCardData, getTeamSlug, isMissingSupabaseTableError, normalizeLeagueValue } from '~/composables/useTeamTable'
 import TeamCard from '~/components/TeamCard.vue'
-import PlayerCard from '~/components/PlayerCard.vue'
 
 useHead({
   title: 'Teams | Football News',
@@ -20,7 +19,9 @@ const leagueTabs = [
   'Premier League',
   'Champions League',
   'International',
-  'Serie A'
+  'Serie A',
+  'Ligue 1',
+  'Bundesliga'
 ]
 
 const selectedLeague = ref('La Liga')
@@ -43,7 +44,9 @@ const { data: allTeams, pending, error } = await useAsyncData('teams-directory',
       .order('name', { ascending: true })
 
     if (error) {
-      console.warn(`Skipping ${table} teams: ${error.message}`)
+      if (!isMissingSupabaseTableError(error)) {
+        console.warn(`Skipping ${table} teams: ${error.message}`)
+      }
       return []
     }
 
@@ -58,45 +61,32 @@ const { data: allTeams, pending, error } = await useAsyncData('teams-directory',
     }))
 
   const laLigaTeams = normalizeTeams(laLigaData, 'LaLiga', 'Laliga')
-  const [premierLeagueTeams, championsLeagueTeams, internationalTeams, serieATeams] = await Promise.all([
+  const [premierLeagueTeams, championsLeagueTeams, internationalTeams, serieATeams, leagueOneTeams, bundesligaTeams] = await Promise.all([
     fetchOptionalLeague('premier league').then((teams) => normalizeTeams(teams, 'Premier League', 'premier league')),
     fetchOptionalLeague('champions league').then((teams) => normalizeTeams(teams, 'Champions League', 'champions league')),
     fetchOptionalLeague('international').then((teams) => normalizeTeams(teams, 'International', 'international')),
-    fetchOptionalLeague('serie a').then((teams) => normalizeTeams(teams, 'Serie A', 'serie a'))
+    fetchOptionalLeague('serie a').then((teams) => normalizeTeams(teams, 'Serie A', 'serie a')),
+    fetchOptionalLeague('ligue 1').then((teams) => normalizeTeams(teams, 'Ligue 1', 'ligue 1')),
+    fetchOptionalLeague('bundesliga').then((teams) => normalizeTeams(teams, 'Bundesliga', 'bundesliga'))
   ])
 
-  return [...laLigaTeams, ...premierLeagueTeams, ...championsLeagueTeams, ...internationalTeams, ...serieATeams]
+  return [...laLigaTeams, ...premierLeagueTeams, ...championsLeagueTeams, ...internationalTeams, ...serieATeams, ...leagueOneTeams, ...bundesligaTeams]
 })
 
-const players = [
-  {
-    name: 'Erling Haaland',
-    position: 'Striker',
-    team: 'Manchester City',
-    rating: '9.4',
-    summary: 'A clinical finisher with devastating pace and aerial presence.'
-  },
-  {
-    name: 'Vinícius Jr.',
-    position: 'Winger',
-    team: 'Real Madrid',
-    rating: '9.2',
-    summary: 'A creative dribbler who can unlock defences with a single run.'
-  },
-  {
-    name: 'Jude Bellingham',
-    position: 'Midfielder',
-    team: 'Real Madrid',
-    rating: '9.1',
-    summary: 'A complete midfielder driving transition and creativity for his side.'
-  }
-]
+const { data: topPerformers, pending: performersPending, error: performersError } = await useAsyncData('top-performers', async () => {
+  const { supabase } = useSupabase()
+  const { data, error } = await supabase
+    .from('top_performers')
+    .select('*')
+    .order('rating', { ascending: false })
 
-const clubHighlights = [
-  { title: 'LaLiga intensity', summary: 'Every club brings a different story shaped by identity, pressure and tactical quality.' },
-  { title: 'Live Supabase data', summary: 'Each team card and profile page will reflect whatever is stored in the Laliga table.' },
-  { title: 'Professional presentation', summary: 'The cards are built for a premium club experience with focus on form, city and stadium details.' }
-]
+  if (error) {
+    console.warn('Failed to load top performers:', error.message)
+    return []
+  }
+
+  return data ?? []
+})
 
 const laLigaCount = computed(() => ((allTeams.value ?? []).filter((team: Record<string, any>) => normalizeLeagueValue(team.league) === 'LaLiga').length))
 
@@ -114,7 +104,9 @@ const leagueTeams = computed(() => {
     'Premier League': 'Premier League',
     'Champions League': 'Champions League',
     'International': 'International',
-    'Serie A': 'Serie A'
+    'Serie A': 'Serie A',
+    'Ligue 1': 'Ligue 1',
+    'Bundesliga': 'Bundesliga'
   }
   const normalizedLeague = leagueMap[selectedLeague.value] || selectedLeague.value
 
@@ -151,7 +143,7 @@ const getTeamProfileRoute = (team: Record<string, any>) => {
           <h3>Featured clubs</h3>
           <div class="hero-stat-grid">
             <div class="stat-block">
-              <span>5</span>
+              <span>7</span>
               <span>Leagues covered</span>
             </div>
             <div class="stat-block">
@@ -215,37 +207,6 @@ const getTeamProfileRoute = (team: Record<string, any>) => {
             :profile-to="getTeamProfileRoute(team)"
           />
         </div>
-      </div>
-    </section>
-
-    <section class="player-spotlight container">
-      <div class="section-header">
-        <p class="section-label">Player spotlight</p>
-        <h2>Elite performers in exceptional form</h2>
-      </div>
-      <div class="player-grid">
-        <PlayerCard
-          v-for="player in players"
-          :key="player.name"
-          :name="player.name"
-          :position="player.position"
-          :team="player.team"
-          :rating="player.rating"
-          :summary="player.summary"
-        />
-      </div>
-    </section>
-
-    <section class="team-highlights container">
-      <div class="section-header">
-        <p class="section-label">Club outlook</p>
-        <h2>The narratives driving this season’s biggest clubs</h2>
-      </div>
-      <div class="highlight-grid">
-        <article v-for="item in clubHighlights" :key="item.title" class="team-highlight-card">
-          <h3>{{ item.title }}</h3>
-          <p>{{ item.summary }}</p>
-        </article>
       </div>
     </section>
   </main>
