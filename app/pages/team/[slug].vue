@@ -290,7 +290,7 @@ const { data: latestNews } = await useAsyncData(`news-${slug}`, async () => {
     <section class="team-profile-hero" :style="{ '--team-primary': team?.primary_color || '#16A34A', '--team-secondary': team?.secondary_color || '#FFFFFF' }">
       <div class="container team-profile-hero__grid">
         <div class="team-profile-hero__copy">
-          <NuxtLink to="/team" class="team-profile-back">Back to teams</NuxtLink>
+          <a href="#" class="team-profile-back" @click.prevent="$router.back()">Back to teams</a>
           <p class="section-label">Team profile</p>
           <h1>{{ team?.name || 'Team not found' }}</h1>
           <p v-if="team">{{ team.summary }}</p>

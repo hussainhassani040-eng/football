@@ -24,19 +24,57 @@ const fallbackFeaturedNews = [
     category: 'Latest Football News',
     headline: 'Manchester City edge past Liverpool in late thriller',
     summary: 'City held on in a dramatic Anfield clash after a stoppage-time counter sealed the win.',
-    image: '/Images/lionel-messi.jpg'
+    image: '/Images/lionel-messi.jpg',
+    to: '/news-detail/manchester-city-edge-past-liverpool'
   },
   {
     category: 'Transfer News',
     headline: 'Real Madrid in talks for elite midfield target',
     summary: 'The reigning champions are closing in on a surprise move ahead of the summer window.',
-    image: '/Images/lionel-messi.jpg'
+    image: '/Images/lionel-messi.jpg',
+    to: '/news-detail/real-madrid-talks-midfield-target'
   },
   {
     category: 'Match Analysis',
     headline: 'Tactical review: How Arsenal broke down the defence',
     summary: 'A closer look at the patterns that gave them control in the second half.',
-    image: '/Images/lionel-messi.jpg'
+    image: '/Images/lionel-messi.jpg',
+    to: '/news-detail/tactical-review-arsenal-defence'
+  },
+  {
+    category: 'Premier League',
+    headline: 'Arsenal maintain title push with dominant display',
+    summary: 'The Gunners delivered a commanding performance to keep pace at the top of the table.',
+    image: '/Images/lionel-messi.jpg',
+    to: '/news-detail/arsenal-title-push-dominant-display'
+  },
+  {
+    category: 'La Liga',
+    headline: 'Barcelona star admits frustration after dropped points',
+    summary: 'A disappointing result leaves questions about consistency in the title race.',
+    image: '/Images/lionel-messi.jpg',
+    to: '/news-detail/barcelona-frustration-dropped-points'
+  },
+  {
+    category: 'Bundesliga',
+    headline: 'Bayern Munich extend lead with convincing victory',
+    summary: 'The German champions showed their class with a comprehensive win on the road.',
+    image: '/Images/lionel-messi.jpg',
+    to: '/news-detail/bayern-munich-extend-lead'
+  },
+  {
+    category: 'Serie A',
+    headline: 'AC Milan revive season with crucial derby win',
+    summary: 'A hard-fought victory breathes new life into Milan\'s campaign.',
+    image: '/Images/lionel-messi.jpg',
+    to: '/news-detail/ac-milan-derby-win'
+  },
+  {
+    category: 'Champions League',
+    headline: 'Knockout phase draw sets up tantalising ties',
+    summary: 'The stage is set for thrilling European encounters in the round of 16.',
+    image: '/Images/lionel-messi.jpg',
+    to: '/news-detail/champions-league-knockout-draw'
   }
 ]
 
@@ -58,7 +96,7 @@ const createSlug = (value: string) =>
 
 const normalizeFeaturedNews = (record: Record<string, any>) => {
   const headline = getTextValue(record, ['title', 'headline', 'name']) || 'Football update'
-  const summary = getTextValue(record, ['summary', 'excerpt', 'description', 'content']) || 'Fresh football coverage from the Supabase news table.'
+  const summary = getTextValue(record, ['summary', 'excerpt', 'description']) || 'Fresh football coverage from the Supabase news table.'
   const category = getTextValue(record, ['category', 'tag', 'type']) || 'Football'
   const image = getTextValue(record, ['image', 'image_url', 'cover_image', 'thumbnail', 'photo']) || '/Images/lionel-messi.jpg'
   const slug = getTextValue(record, ['slug']) || (record?.id ? String(record.id) : createSlug(headline))
@@ -97,7 +135,7 @@ const { data: featuredNews } = await useAsyncData('home-featured-news', async ()
       .from('news')
       .select('*')
       .order('created_at', { ascending: false })
-      .limit(3)
+      .limit(8)
 
     if (error) {
       throw error
@@ -149,19 +187,22 @@ const fallbackTransfers = [
     player: 'Kylian Mbappé',
     status: 'Rumour',
     headline: 'PSG star linked with move to Premier League',
-    summary: 'Top clubs are reportedly preparing offers as the striker evaluates his future.'
+    summary: 'Top clubs are reportedly preparing offers as the striker evaluates his future.',
+    to: '/transfer-detail/kylian-mbappe-transfer-rumour'
   },
   {
     player: 'Jude Bellingham',
     status: 'Confirmed',
     headline: 'Midfield maestro closes in on Real Madrid transfer',
-    summary: 'The English international looks set for a headline move after a stellar season.'
+    summary: 'The English international looks set for a headline move after a stellar season.',
+    to: '/transfer-detail/jude-bellingham-real-madrid-transfer'
   },
   {
     player: 'Riyad Mahrez',
     status: 'Latest',
     headline: 'Juventus monitor late-window winger option',
-    summary: 'The Italian giants are keeping tabs on a creative wide attacker.'
+    summary: 'The Italian giants are keeping tabs on a creative wide attacker.',
+    to: '/transfer-detail/riyad-mahrez-juventus-latest'
   }
 ]
 
@@ -189,12 +230,14 @@ const normalizeTransfer = (record: Record<string, any>) => {
   const club = getTextValue(record, ['club', 'team', 'to_club', 'destination_club'])
   const headline = getTextValue(record, ['headline', 'title', 'name']) || (club ? `${player} linked with ${club}` : `${player} transfer update`)
   const summary = getTextValue(record, ['summary', 'excerpt', 'description', 'content', 'details']) || 'Fresh transfer coverage from the Supabase transfer_news table.'
+  const slug = getTextValue(record, ['slug']) || (record?.id ? String(record.id) : createSlug(headline))
 
   return {
     player,
     status,
     headline,
-    summary: summary.length > 130 ? `${summary.slice(0, 127)}...` : summary
+    summary: summary.length > 130 ? `${summary.slice(0, 127)}...` : summary,
+    to: `/transfer-detail/${slug}`
   }
 }
 
@@ -429,8 +472,8 @@ const { data: players } = await useAsyncData('home-top-performers', async () => 
         <h1>Latest Football News & Transfer Updates</h1>
         <p class="hero-copy">Breaking football news, transfer rumours, match reports and analysis from around the world.</p>
         <div class="hero-actions">
-          <NuxtLink to="/#news" class="btn btn-primary">Explore News</NuxtLink>
-          <NuxtLink to="/#transfers" class="btn btn-secondary">Follow Transfers</NuxtLink>
+          <NuxtLink to="/news" class="btn btn-primary">Explore News</NuxtLink>
+          <NuxtLink to="/transfer" class="btn btn-secondary">Follow Transfers</NuxtLink>
         </div>
       </div>
     </section>
@@ -455,7 +498,7 @@ const { data: players } = await useAsyncData('home-top-performers', async () => 
           <MatchCard v-for="match in trendingMatches" :key="match.homeTeam + match.awayTeam" :league="match.league" :home-team="match.homeTeam" :away-team="match.awayTeam" :home-score="match.homeScore" :away-score="match.awayScore" :status="match.status" :summary="match.summary" />
         </div>
         <div class="trending-column">
-          <TransferCard v-for="transfer in transfers" :key="transfer.player" :player="transfer.player" :status="transfer.status" :headline="transfer.headline" :summary="transfer.summary" />
+          <TransferCard v-for="transfer in transfers" :key="transfer.player" :player="transfer.player" :status="transfer.status" :headline="transfer.headline" :summary="transfer.summary" :to="transfer.to" />
         </div>
       </div>
     </section>
