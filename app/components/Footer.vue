@@ -1,6 +1,8 @@
 <template>
   <footer class="site-footer">
     <div class="footer-inner container">
+      <div class="footer-links">
+      </div>
       <p class="footer-copy">© 2026 Football News</p>
       <div class="social-links" aria-label="Social media links">
         <a href="#" aria-label="Facebook" class="social-icon" tabindex="0">

@@ -29,6 +29,7 @@
         <NuxtLink to="/team" active-class="nav-link-active" class="nav-link" @click="closeMenu">Teams</NuxtLink>
         <NuxtLink to="/about" active-class="nav-link-active" class="nav-link" @click="closeMenu">About</NuxtLink>
         <NuxtLink to="/contact" active-class="nav-link-active" class="nav-link" @click="closeMenu">Contact</NuxtLink>
+        <NuxtLink to="/donate" active-class="nav-link-active" class="nav-link donate-link" @click="closeMenu">Donate</NuxtLink>
         <NuxtLink v-if="user" to="/dashboard" active-class="nav-link-active" class="nav-link" @click="closeMenu">Dashboard</NuxtLink>
         <div class="auth-nav">
           <span v-if="user" class="auth-email">{{ user.email }}</span>
